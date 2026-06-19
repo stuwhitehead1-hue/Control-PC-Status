@@ -1,8 +1,3 @@
-Here is the updated app.py script with the layout compressed even further.
-
-The max-width has been chopped down to a razor-thin 260px, the padding around the screen has been minimized, and the text sizes are micro-optimized. This creates an extremely compact grid that will fit perfectly into tight corner zones or narrow mobile widgets.
-
-Python
 import os
 import requests
 from flask import Flask, render_template_string
