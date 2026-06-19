@@ -1,6 +1,4 @@
-Here is the updated app.py script with the entire top heading block removed. The dashboard now dives straight into the summary cards and the endpoint status table for a cleaner, more compact look.
 
-Python
 import os
 import requests
 from flask import Flask, render_template_string
