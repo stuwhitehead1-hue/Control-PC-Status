@@ -1,3 +1,8 @@
+Here is the updated app.py script with the layout compressed even further.
+
+The max-width has been chopped down to a razor-thin 260px, the padding around the screen has been minimized, and the text sizes are micro-optimized. This creates an extremely compact grid that will fit perfectly into tight corner zones or narrow mobile widgets.
+
+Python
 import os
 import requests
 from flask import Flask, render_template_string
@@ -13,53 +18,52 @@ HTML_TEMPLATE = """<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Action1 Endpoint Status Report</title>
+    <title>Action1 Status</title>
     <style>
         body { 
             font-family: -apple-system, sans-serif; 
             color: #f1f5f9; 
             background-color: #0f172a; 
             margin: 0; 
-            padding: 15px; 
+            padding: 8px; /* Ultra-tight screen padding */
             display: flex;
             flex-direction: column;
             align-items: center;
         }
         .container {
             width: 100%;
-            max-width: 400px; /* Reduced container size to keep elements compact */
+            max-width: 260px; /* Highly compressed overall footprint */
         }
         .summary-cards { 
             display: flex; 
-            gap: 10px; 
-            margin-bottom: 15px; 
+            gap: 6px; /* Micro gaps between summary counters */
+            margin-bottom: 8px; 
         }
         .card { 
             flex: 1; 
             background: #1e293b; 
-            padding: 12px; 
-            border-radius: 8px; 
+            padding: 8px; /* Compact padding */
+            border-radius: 6px; 
             border: 1px solid #334155; 
         }
-        .card.connected { border-left: 4px solid #10b981; }
-        .card.disconnected { border-left: 4px solid #f43f5e; }
+        .card.connected { border-left: 3px solid #10b981; }
+        .card.disconnected { border-left: 3px solid #f43f5e; }
         .card-title { 
-            font-size: 8.5pt; 
+            font-size: 7.5pt; 
             text-transform: uppercase; 
             color: #94a3b8; 
             font-weight: 600; 
-            margin-bottom: 3px;
+            margin-bottom: 2px;
         }
         .card-value { 
-            font-size: 16pt; 
+            font-size: 13pt; 
             font-weight: 700; 
             color: #f8fafc;
         }
         
-        /* Replaced traditional table with a highly dense list layout */
         .endpoint-list {
             background: #1e293b; 
-            border-radius: 8px; 
+            border-radius: 6px; 
             overflow: hidden;
             border: 1px solid #334155; 
             padding: 0;
@@ -69,9 +73,8 @@ HTML_TEMPLATE = """<!DOCTYPE html>
         .endpoint-item {
             display: flex;
             align-items: center;
-            justify-content: flex-start; /* Forces items to bundle to the left */
-            gap: 12px; /* Small, fixed gap between the name and status badge */
-            padding: 10px 14px; 
+            justify-content: space-between; /* Pushes name and badge cleanly to outer edges of the 260px container */
+            padding: 8px 10px; 
             border-bottom: 1px solid #334155;
         }
         .endpoint-item:last-child {
@@ -82,16 +85,19 @@ HTML_TEMPLATE = """<!DOCTYPE html>
         }
         .endpoint-name {
             color: #f8fafc;
-            font-weight: bold;
-            font-size: 10pt;
+            font-weight: 600;
+            font-size: 9pt;
             white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis; /* Safely cuts off overly long hostnames without breaking row heights */
+            margin-right: 8px;
         }
         .badge { 
             display: inline-block; 
-            padding: 2px 8px; 
-            font-size: 7.5pt; 
+            padding: 1px 6px; 
+            font-size: 7pt; 
             font-weight: 600; 
-            border-radius: 12px; 
+            border-radius: 10px; 
             text-align: center;
             white-space: nowrap;
         }
@@ -108,8 +114,8 @@ HTML_TEMPLATE = """<!DOCTYPE html>
         .empty-state {
             text-align: center; 
             color: #64748b; 
-            padding: 30px;
-            font-size: 10pt;
+            padding: 20px;
+            font-size: 9pt;
         }
     </style>
 </head>
@@ -123,14 +129,14 @@ HTML_TEMPLATE = """<!DOCTYPE html>
         <ul class="endpoint-list">
             {% for ep in endpoints %}
             <li class="endpoint-item">
-                <span class="endpoint-name">{{ ep.name }}</span>
+                <span class="endpoint-name" title="{{ ep.name }}">{{ ep.name }}</span>
                 <span class="badge {% if ep.status.lower() == 'connected' %}badge-connected{% else %}badge-disconnected{% endif %}">
                     {{ ep.status.upper() }}
                 </span>
             </li>
             {% else %}
             <li class="empty-state">
-                No endpoints found. Check server configuration logs.
+                No endpoints found.
             </li>
             {% endfor %}
         </ul>
