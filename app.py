@@ -72,8 +72,9 @@ HTML_TEMPLATE = """<!DOCTYPE html>
 </html>"""
 
 def get_action1_token():
-    """Exchanges Client ID and Secret for an active Session Token"""
-    token_url = "https://app.action1.com/api/3.0/oauth2/token"
+    """Exchanges Client ID and Secret for an active Session Token on the EU cluster"""
+    # Changed to app.eu.action1.com
+    token_url = "https://app.eu.action1.com/api/3.0/oauth2/token"
     payload = {
         "client_id": CLIENT_ID,
         "client_secret": CLIENT_SECRET
@@ -94,8 +95,8 @@ def index():
     token = get_action1_token()
     
     if token:
-        # Pull managed endpoints using the fresh token
-        data_url = f"https://app.action1.com/api/3.0/endpoints/managed/{ORG_ID}"
+        # Changed to app.eu.action1.com
+        data_url = f"https://app.eu.action1.com/api/3.0/endpoints/managed/{ORG_ID}"
         headers = {"Authorization": f"Bearer {token}", "Accept": "application/json"}
         try:
             response = requests.get(data_url, headers=headers)
