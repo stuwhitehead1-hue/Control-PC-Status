@@ -20,55 +20,60 @@ HTML_TEMPLATE = """<!DOCTYPE html>
             color: #f1f5f9; 
             background-color: #0f172a; 
             margin: 0; 
-            padding: 8px; 
+            padding: 4px; 
             display: flex;
             flex-direction: column;
             align-items: center;
         }
         .container {
             width: 100%;
-            max-width: 260px; 
+            max-width: 149px; 
         }
         .summary-cards { 
             display: flex; 
-            gap: 6px; 
-            margin-bottom: 8px; 
+            gap: 4px; 
+            margin-bottom: 6px; 
         }
         .card { 
             flex: 1; 
             background: #1e293b; 
-            padding: 8px; 
-            border-radius: 6px; 
+            padding: 4px 6px; 
+            border-radius: 4px; 
             border: 1px solid #334155; 
         }
-        .card.connected { border-left: 3px solid #10b981; }
-        .card.disconnected { border-left: 3px solid #f43f5e; }
+        .card.connected { border-left: 2px solid #10b981; }
+        .card.disconnected { border-left: 2px solid #f43f5e; }
         .card-title { 
-            font-size: 7.5pt; 
+            font-size: 6.5pt; 
             text-transform: uppercase; 
             color: #94a3b8; 
             font-weight: 600; 
-            margin-bottom: 2px;
+            margin-bottom: 1px;
+            white-space: nowrap;
+            overflow: hidden;
         }
         .card-value { 
-            font-size: 13pt; 
+            font-size: 11pt; 
             font-weight: 700; 
             color: #f8fafc;
+            line-height: 1;
         }
         
         .endpoint-list {
             background: #1e293b; 
-            border-radius: 6px; 
+            border-radius: 4px; 
             overflow: hidden;
             border: 1px solid #334155; 
             padding: 0;
             margin: 0;
             list-style: none;
+            max-height: 530px; 
+            overflow-y: auto; 
         }
         .endpoint-item {
             display: flex;
             align-items: center;
-            padding: 8px 10px; 
+            padding: 6px 8px; 
             border-bottom: 1px solid #334155;
         }
         .endpoint-item:last-child {
@@ -77,62 +82,57 @@ HTML_TEMPLATE = """<!DOCTYPE html>
         .endpoint-item:nth-child(even) {
             background-color: #182235;
         }
+        
+        /* Status indicator changed to a compact dot to maximize name text space */
+        .status-dot {
+            width: 7px;
+            height: 7px;
+            border-radius: 50%;
+            margin-right: 8px;
+            flex-shrink: 0;
+        }
+        .dot-connected {
+            background-color: #34d399;
+            box-shadow: 0 0 6px #10b981;
+        }
+        .dot-disconnected {
+            background-color: #fb7185;
+            box-shadow: 0 0 6px #f43f5e;
+        }
+
         .endpoint-name {
             color: #f8fafc;
             font-weight: 600;
-            font-size: 9pt;
+            font-size: 8.5pt;
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
-            flex-grow: 1; /* Allows the name to take up all maximum available row space */
-            margin-right: 6px; /* Reduced gap to prioritize text length */
-        }
-        .badge { 
-            display: inline-block; 
-            padding: 1px 6px; 
-            font-size: 7pt; 
-            font-weight: 600; 
-            border-radius: 10px; 
-            text-align: center;
-            white-space: nowrap;
-            flex-shrink: 0; /* Prevents the badge itself from squeezing or warping */
-        }
-        .badge-connected { 
-            background-color: #064e3b; 
-            color: #34d399; 
-            border: 1px solid #059669;
-        }
-        .badge-disconnected { 
-            background-color: #4c0519; 
-            color: #fb7185; 
-            border: 1px solid #e11d48;
+            flex-grow: 1;
         }
         .empty-state {
             text-align: center; 
             color: #64748b; 
-            padding: 20px;
-            font-size: 9pt;
+            padding: 15px;
+            font-size: 8pt;
         }
     </style>
 </head>
 <body>
     <div class="container">
         <div class="summary-cards">
-            <div class="card connected"><div class="card-title">Connected</div><div class="card-value" style="color:#34d399;">{{ connected }}</div></div>
-            <div class="card disconnected"><div class="card-title">Disconnected</div><div class="card-value" style="color:#fb7185;">{{ disconnected }}</div></div>
+            <div class="card connected"><div class="card-title">Conn</div><div class="card-value" style="color:#34d399;">{{ connected }}</div></div>
+            <div class="card disconnected"><div class="card-title">Disc</div><div class="card-value" style="color:#fb7185;">{{ disconnected }}</div></div>
         </div>
         
         <ul class="endpoint-list">
             {% for ep in endpoints %}
             <li class="endpoint-item">
+                <span class="status-dot {% if ep.status.lower() == 'connected' %}dot-connected{% else %}dot-disconnected{% endif %}"></span>
                 <span class="endpoint-name" title="{{ ep.name }}">{{ ep.name }}</span>
-                <span class="badge {% if ep.status.lower() == 'connected' %}badge-connected{% else %}badge-disconnected{% endif %}">
-                    {{ ep.status.upper() }}
-                </span>
             </li>
             {% else %}
             <li class="empty-state">
-                No endpoints found.
+                None.
             </li>
             {% endfor %}
         </ul>
