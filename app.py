@@ -29,36 +29,6 @@ HTML_TEMPLATE = """<!DOCTYPE html>
             width: 100%;
             max-width: 149px; 
         }
-        .summary-cards { 
-            display: flex; 
-            gap: 4px; 
-            margin-bottom: 6px; 
-        }
-        .card { 
-            flex: 1; 
-            background: #1e293b; 
-            padding: 4px 6px; 
-            border-radius: 4px; 
-            border: 1px solid #334155; 
-        }
-        .card.connected { border-left: 2px solid #10b981; }
-        .card.disconnected { border-left: 2px solid #f43f5e; }
-        .card-title { 
-            font-size: 6.5pt; 
-            text-transform: uppercase; 
-            color: #94a3b8; 
-            font-weight: 600; 
-            margin-bottom: 1px;
-            white-space: nowrap;
-            overflow: hidden;
-        }
-        .card-value { 
-            font-size: 11pt; 
-            font-weight: 700; 
-            color: #f8fafc;
-            line-height: 1;
-        }
-        
         .endpoint-list {
             background: #1e293b; 
             border-radius: 4px; 
@@ -67,7 +37,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
             padding: 0;
             margin: 0;
             list-style: none;
-            max-height: 530px; 
+            max-height: 580px; /* Increased to utilize the full 590px height since cards are gone */
             overflow-y: auto; 
         }
         .endpoint-item {
@@ -83,7 +53,6 @@ HTML_TEMPLATE = """<!DOCTYPE html>
             background-color: #182235;
         }
         
-        /* Status indicator changed to a compact dot to maximize name text space */
         .status-dot {
             width: 7px;
             height: 7px;
@@ -119,11 +88,6 @@ HTML_TEMPLATE = """<!DOCTYPE html>
 </head>
 <body>
     <div class="container">
-        <div class="summary-cards">
-            <div class="card connected"><div class="card-title">Conn</div><div class="card-value" style="color:#34d399;">{{ connected }}</div></div>
-            <div class="card disconnected"><div class="card-title">Disc</div><div class="card-value" style="color:#fb7185;">{{ disconnected }}</div></div>
-        </div>
-        
         <ul class="endpoint-list">
             {% for ep in endpoints %}
             <li class="endpoint-item">
@@ -176,15 +140,7 @@ def index():
         except Exception as e:
             print(f"[DATA ERROR] Failed to fetch endpoints from Action1: {e}")
 
-    total = len(endpoints)
-    connected = len([e for e in endpoints if str(e.get("status")).lower() == "connected"])
-    disconnected = total - connected
-
-    return render_template_string(
-        HTML_TEMPLATE, 
-        endpoints=endpoints, 
-        connected=connected, disconnected=disconnected
-    )
+    return render_template_string(HTML_TEMPLATE, endpoints=endpoints)
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 5000)))
