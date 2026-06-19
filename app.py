@@ -159,6 +159,10 @@ def index():
             response = requests.get(data_url, headers=headers)
             response.raise_for_status()
             endpoints = response.json().get("items", [])
+            
+            # Sort endpoints alphabetically (case-insensitive) by the "name" key
+            endpoints.sort(key=lambda x: str(x.get("name", "")).lower())
+            
         except Exception as e:
             print(f"[DATA ERROR] Failed to fetch endpoints from Action1: {e}")
 
