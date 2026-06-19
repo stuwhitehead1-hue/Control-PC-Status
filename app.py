@@ -20,31 +20,38 @@ HTML_TEMPLATE = """<!DOCTYPE html>
             color: #f1f5f9; 
             background-color: #0f172a; 
             margin: 0; 
-            padding: 20px; 
+            padding: 15px; 
+            display: flex;
+            flex-direction: column;
+            align-items: center; /* Centers the whole layout on large screens */
+        }
+        .container {
+            width: 100%;
+            max-width: 550px; /* Restricts maximum width to stop empty space expansion */
         }
         .summary-cards { 
             display: flex; 
-            gap: 15px; 
-            margin-bottom: 20px; 
+            gap: 10px; /* Tighter gap between boxes */
+            margin-bottom: 15px; 
         }
         .card { 
             flex: 1; 
             background: #1e293b; 
-            padding: 15px; 
+            padding: 12px; 
             border-radius: 8px; 
             border: 1px solid #334155; 
         }
         .card.connected { border-left: 4px solid #10b981; }
         .card.disconnected { border-left: 4px solid #f43f5e; }
         .card-title { 
-            font-size: 9pt; 
+            font-size: 8.5pt; 
             text-transform: uppercase; 
             color: #94a3b8; 
             font-weight: 600; 
-            margin-bottom: 5px;
+            margin-bottom: 3px;
         }
         .card-value { 
-            font-size: 18pt; 
+            font-size: 16pt; 
             font-weight: 700; 
             color: #f8fafc;
         }
@@ -57,18 +64,25 @@ HTML_TEMPLATE = """<!DOCTYPE html>
             border: 1px solid #334155; 
         }
         th, td { 
-            padding: 14px; 
+            padding: 10px 14px; 
             text-align: left; 
             border-bottom: 1px solid #334155; 
+        }
+        /* Forces the Status column to only take as much room as needed */
+        th:nth-child(2), td:nth-child(2) {
+            width: 1%;
+            white-space: nowrap;
+            text-align: right; /* Aligns statuses beautifully on the right edge */
         }
         th { 
             background-color: #0f172a; 
             color: #94a3b8; 
             font-weight: 600; 
-            font-size: 9.5pt;
+            font-size: 9pt;
         }
         td {
             color: #cbd5e1;
+            font-size: 10pt;
         }
         tr:hover td {
             background-color: #1e293b;
@@ -78,11 +92,12 @@ HTML_TEMPLATE = """<!DOCTYPE html>
         }
         .badge { 
             display: inline-block; 
-            padding: 4px 10px; 
-            font-size: 8.5pt; 
+            padding: 3px 8px; 
+            font-size: 8pt; 
             font-weight: 600; 
             border-radius: 12px; 
             text-align: center;
+            min-width: 95px; /* Ensures uniform badge sizes */
         }
         .badge-connected { 
             background-color: #064e3b; 
@@ -97,36 +112,38 @@ HTML_TEMPLATE = """<!DOCTYPE html>
     </style>
 </head>
 <body>
-    <div class="summary-cards">
-        <div class="card connected"><div class="card-title">Connected</div><div class="card-value" style="color:#34d399;">{{ connected }}</div></div>
-        <div class="card disconnected"><div class="card-title">Disconnected</div><div class="card-value" style="color:#fb7185;">{{ disconnected }}</div></div>
+    <div class="container">
+        <div class="summary-cards">
+            <div class="card connected"><div class="card-title">Connected</div><div class="card-value" style="color:#34d399;">{{ connected }}</div></div>
+            <div class="card disconnected"><div class="card-title">Disconnected</div><div class="card-value" style="color:#fb7185;">{{ disconnected }}</div></div>
+        </div>
+        <table>
+            <thead>
+                <tr>
+                    <th>Endpoint Name</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for ep in endpoints %}
+                <tr>
+                    <td><strong style="color: #f8fafc;">{{ ep.name }}</strong></td>
+                    <td>
+                        <span class="badge {% if ep.status.lower() == 'connected' %}badge-connected{% else %}badge-disconnected{% endif %}">
+                            {{ ep.status.upper() }}
+                        </span>
+                    </td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="2" style="text-align: center; color: #64748b; padding: 30px;">
+                        No endpoints found. Check server configuration logs.
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
     </div>
-    <table>
-        <thead>
-            <tr>
-                <th>Endpoint Name</th>
-                <th>Status</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for ep in endpoints %}
-            <tr>
-                <td><strong style="color: #f8fafc;">{{ ep.name }}</strong></td>
-                <td>
-                    <span class="badge {% if ep.status.lower() == 'connected' %}badge-connected{% else %}badge-disconnected{% endif %}">
-                        {{ ep.status.upper() }}
-                    </span>
-                </td>
-            </tr>
-            {% else %}
-            <tr>
-                <td colspan="2" style="text-align: center; color: #64748b; padding: 30px;">
-                    No endpoints found. Check server configuration logs.
-                </td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
 </body>
 </html>"""
 
