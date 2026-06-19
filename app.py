@@ -1,11 +1,13 @@
+Python
 import os
 import requests
 from flask import Flask, render_template_string
 
 app = Flask(__name__)
 
-# Grab configuration from Render's Environment Variables
-API_TOKEN = os.environ.get("ACTION1_API_TOKEN")
+# Pull variables securely from Render dashboard
+CLIENT_ID = os.environ.get("ACTION1_API_TOKEN") # This is your Client ID
+CLIENT_SECRET = os.environ.get("ACTION1_CLIENT_SECRET") # Add this secret on Render!
 ORG_ID = os.environ.get("ACTION1_ORG_ID")
 
 HTML_TEMPLATE = """<!DOCTYPE html>
@@ -33,7 +35,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
 <body>
     <div class="header-container">
         <h1>Action1 Endpoint Status Overview</h1>
-        <p>Live Render Server Dashboard</p>
+        <p>Live Connected Inventory Dashboard</p>
     </div>
     <div class="summary-cards">
         <div class="card"><div class="card-title">Total Endpoints</div><div class="card-value">{{ total }}</div></div>
@@ -53,9 +55,15 @@ HTML_TEMPLATE = """<!DOCTYPE html>
                 <td>{{ ep.os_version }}</td>
                 <td>{{ ep.last_seen }}</td>
                 <td>
-                    <span class="badge {% if ep.status == 'connected' %}badge-connected{% else %}badge-disconnected{% endif %}">
+                    <span class="badge {% if ep.status.lower() == 'connected' %}badge-connected{% else %}badge-disconnected{% endif %}">
                         {{ ep.status.upper() }}
                     </span>
+                </td>
+            </tr>
+            {% else %}
+            <tr>
+                <td colspan="5" style="text-align: center; color: #64748b; padding: 30px;">
+                    No endpoints found. Check server configuration logs.
                 </td>
             </tr>
             {% endfor %}
@@ -64,19 +72,41 @@ HTML_TEMPLATE = """<!DOCTYPE html>
 </body>
 </html>"""
 
-@app.route("/")
-def index():
-    url = f"https://api.action1.com/v1/organizations/{ORG_ID}/endpoints"
-    headers = {"Authorization": f"Bearer {API_TOKEN}", "Accept": "application/json"}
+def get_action1_token():
+    """Exchanges Client ID and Secret for an active Session Token"""
+    token_url = "https://app.action1.com/api/3.0/oauth2/token"
+    payload = {
+        "client_id": CLIENT_ID,
+        "client_secret": CLIENT_SECRET
+    }
+    headers = {"Content-Type": "application/x-www-form-urlencoded"}
     
     try:
-        response = requests.get(url, headers=headers)
-        endpoints = response.json().get("items", [])
-    except Exception:
-        endpoints = []
-        
+        res = requests.post(token_url, data=payload, headers=headers)
+        res.raise_for_status()
+        return res.json().get("access_token")
+    except Exception as e:
+        print(f"[AUTH ERROR] Failed to generate OAuth token: {e}")
+        return None
+
+@app.route("/")
+def index():
+    endpoints = []
+    token = get_action1_token()
+    
+    if token:
+        # Pull managed endpoints using the fresh token
+        data_url = f"https://app.action1.com/api/3.0/endpoints/managed/{ORG_ID}"
+        headers = {"Authorization": f"Bearer {token}", "Accept": "application/json"}
+        try:
+            response = requests.get(data_url, headers=headers)
+            response.raise_for_status()
+            endpoints = response.json().get("items", [])
+        except Exception as e:
+            print(f"[DATA ERROR] Failed to fetch endpoints from Action1: {e}")
+
     total = len(endpoints)
-    connected = len([e for e in endpoints if e.get("status") == "connected"])
+    connected = len([e for e in endpoints if str(e.get("status")).lower() == "connected"])
     disconnected = total - connected
     online_rate = round((connected / total) * 100, 1) if total > 0 else 0
 
