@@ -5,8 +5,8 @@ from flask import Flask, render_template_string
 app = Flask(__name__)
 
 # Pull variables securely from Render dashboard
-CLIENT_ID = os.environ.get("ACTION1_API_TOKEN") # This is your Client ID
-CLIENT_SECRET = os.environ.get("ACTION1_CLIENT_SECRET") # Add this secret on Render!
+CLIENT_ID = os.environ.get("ACTION1_API_TOKEN") # Your Client ID
+CLIENT_SECRET = os.environ.get("ACTION1_CLIENT_SECRET") # Your Client Secret
 ORG_ID = os.environ.get("ACTION1_ORG_ID")
 
 HTML_TEMPLATE = """<!DOCTYPE html>
@@ -15,20 +15,100 @@ HTML_TEMPLATE = """<!DOCTYPE html>
     <meta charset="UTF-8">
     <title>Action1 Endpoint Status Report</title>
     <style>
-        body { font-family: -apple-system, sans-serif; color: #1e293b; background-color: #f8fafc; margin: 0; padding: 20px; }
-        .header-container { background-color: #0f172a; color: white; padding: 20px; border-bottom: 4px solid #0284c7; border-radius: 6px 6px 0 0; }
-        .summary-cards { display: flex; gap: 15px; margin: 20px 0; }
-        .card { flex: 1; background: white; padding: 15px; border-radius: 6px; border: 1px solid #e2e8f0; }
+        body { 
+            font-family: -apple-system, sans-serif; 
+            color: #f1f5f9; 
+            background-color: #0f172a; 
+            margin: 0; 
+            padding: 20px; 
+        }
+        .header-container { 
+            background-color: #1e293b; 
+            color: #ffffff; 
+            padding: 20px; 
+            border-bottom: 4px solid #38bdf8; 
+            border-radius: 8px 8px 0 0; 
+        }
+        .header-container h1 {
+            margin: 0;
+            font-size: 20px;
+        }
+        .header-container p {
+            margin: 5px 0 0 0;
+            color: #94a3b8;
+        }
+        .summary-cards { 
+            display: flex; 
+            gap: 15px; 
+            margin: 20px 0; 
+        }
+        .card { 
+            flex: 1; 
+            background: #1e293b; 
+            padding: 15px; 
+            border-radius: 8px; 
+            border: 1px solid #334155; 
+        }
         .card.connected { border-left: 4px solid #10b981; }
-        .card.disconnected { border-left: 4px solid #ef4444; }
-        .card-title { font-size: 9pt; text-transform: uppercase; color: #64748b; font-weight: 600; }
-        .card-value { font-size: 18pt; font-weight: 700; }
-        table { width: 100%; border-collapse: collapse; background: white; border-radius: 6px; border: 1px solid #e2e8f0; }
-        th, td { padding: 12px; text-align: left; border-bottom: 1px solid #e2e8f0; }
-        th { background-color: #f1f5f9; color: #334155; font-weight: 600; }
-        .badge { display: inline-block; padding: 2px 8px; font-size: 8.5pt; font-weight: 600; border-radius: 12px; }
-        .badge-connected { background-color: #d1fae5; color: #065f46; }
-        .badge-disconnected { background-color: #fee2e2; color: #991b1b; }
+        .card.disconnected { border-left: 4px solid #f43f5e; }
+        .card-title { 
+            font-size: 9pt; 
+            text-transform: uppercase; 
+            color: #94a3b8; 
+            font-weight: 600; 
+            margin-bottom: 5px;
+        }
+        .card-value { 
+            font-size: 18pt; 
+            font-weight: 700; 
+            color: #f8fafc;
+        }
+        table { 
+            width: 100%; 
+            border-collapse: collapse; 
+            background: #1e293b; 
+            border-radius: 8px; 
+            overflow: hidden;
+            border: 1px solid #334155; 
+        }
+        th, td { 
+            padding: 14px; 
+            text-align: left; 
+            border-bottom: 1px solid #334155; 
+        }
+        th { 
+            background-color: #0f172a; 
+            color: #94a3b8; 
+            font-weight: 600; 
+            font-size: 9.5pt;
+        }
+        td {
+            color: #cbd5e1;
+        }
+        tr:hover td {
+            background-color: #1e293b;
+        }
+        tr:nth-child(even) td {
+            background-color: #182235;
+        }
+        .badge { 
+            display: inline-block; 
+            padding: 4px 10px; 
+            font-size: 8.5pt; 
+            font-weight: 600; 
+            border-radius: 12px; 
+            text-align: center;
+        }
+        .badge-connected { 
+            background-color: #064e3b; 
+            color: #34d399; 
+            border: 1px solid #059669;
+        }
+        .badge-disconnected { 
+            background-color: #4c0519; 
+            color: #fb7185; 
+            border: 1px solid #e11d48;
+        }
     </style>
 </head>
 <body>
@@ -38,20 +118,22 @@ HTML_TEMPLATE = """<!DOCTYPE html>
     </div>
     <div class="summary-cards">
         <div class="card"><div class="card-title">Total Endpoints</div><div class="card-value">{{ total }}</div></div>
-        <div class="card connected"><div class="card-title">Connected</div><div class="card-value" style="color:#10b981;">{{ connected }}</div></div>
-        <div class="card disconnected"><div class="card-title">Disconnected</div><div class="card-value" style="color:#ef4444;">{{ disconnected }}</div></div>
+        <div class="card connected"><div class="card-title">Connected</div><div class="card-value" style="color:#34d399;">{{ connected }}</div></div>
+        <div class="card disconnected"><div class="card-title">Disconnected</div><div class="card-value" style="color:#fb7185;">{{ disconnected }}</div></div>
         <div class="card"><div class="card-title">Online Rate</div><div class="card-value">{{ online_rate }}%</div></div>
     </div>
     <table>
         <thead>
-            <tr><th>Endpoint Name</th><th>IP Address</th><th>OS Version</th><th>Last Seen</th><th>Status</th></tr>
+            <tr>
+                <th>Endpoint Name</th>
+                <th>Last Seen</th>
+                <th>Status</th>
+            </tr>
         </thead>
         <tbody>
             {% for ep in endpoints %}
             <tr>
-                <td><strong>{{ ep.name }}</strong></td>
-                <td>{{ ep.ip_address }}</td>
-                <td>{{ ep.os_version }}</td>
+                <td><strong style="color: #f8fafc;">{{ ep.name }}</strong></td>
                 <td>{{ ep.last_seen }}</td>
                 <td>
                     <span class="badge {% if ep.status.lower() == 'connected' %}badge-connected{% else %}badge-disconnected{% endif %}">
@@ -61,7 +143,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
             </tr>
             {% else %}
             <tr>
-                <td colspan="5" style="text-align: center; color: #64748b; padding: 30px;">
+                <td colspan="3" style="text-align: center; color: #64748b; padding: 30px;">
                     No endpoints found. Check server configuration logs.
                 </td>
             </tr>
@@ -73,7 +155,6 @@ HTML_TEMPLATE = """<!DOCTYPE html>
 
 def get_action1_token():
     """Exchanges Client ID and Secret for an active Session Token on the EU cluster"""
-    # Changed to app.eu.action1.com
     token_url = "https://app.eu.action1.com/api/3.0/oauth2/token"
     payload = {
         "client_id": CLIENT_ID,
@@ -95,7 +176,6 @@ def index():
     token = get_action1_token()
     
     if token:
-        # Changed to app.eu.action1.com
         data_url = f"https://app.eu.action1.com/api/3.0/endpoints/managed/{ORG_ID}"
         headers = {"Authorization": f"Bearer {token}", "Accept": "application/json"}
         try:
