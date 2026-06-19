@@ -1,4 +1,3 @@
-
 import os
 import requests
 from flask import Flask, render_template_string
@@ -99,16 +98,13 @@ HTML_TEMPLATE = """<!DOCTYPE html>
 </head>
 <body>
     <div class="summary-cards">
-        <div class="card"><div class="card-title">Total Endpoints</div><div class="card-value">{{ total }}</div></div>
         <div class="card connected"><div class="card-title">Connected</div><div class="card-value" style="color:#34d399;">{{ connected }}</div></div>
         <div class="card disconnected"><div class="card-title">Disconnected</div><div class="card-value" style="color:#fb7185;">{{ disconnected }}</div></div>
-        <div class="card"><div class="card-title">Online Rate</div><div class="card-value">{{ online_rate }}%</div></div>
     </div>
     <table>
         <thead>
             <tr>
                 <th>Endpoint Name</th>
-                <th>Last Seen</th>
                 <th>Status</th>
             </tr>
         </thead>
@@ -116,7 +112,6 @@ HTML_TEMPLATE = """<!DOCTYPE html>
             {% for ep in endpoints %}
             <tr>
                 <td><strong style="color: #f8fafc;">{{ ep.name }}</strong></td>
-                <td>{{ ep.last_seen }}</td>
                 <td>
                     <span class="badge {% if ep.status.lower() == 'connected' %}badge-connected{% else %}badge-disconnected{% endif %}">
                         {{ ep.status.upper() }}
@@ -125,7 +120,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
             </tr>
             {% else %}
             <tr>
-                <td colspan="3" style="text-align: center; color: #64748b; padding: 30px;">
+                <td colspan="2" style="text-align: center; color: #64748b; padding: 30px;">
                     No endpoints found. Check server configuration logs.
                 </td>
             </tr>
@@ -170,12 +165,11 @@ def index():
     total = len(endpoints)
     connected = len([e for e in endpoints if str(e.get("status")).lower() == "connected"])
     disconnected = total - connected
-    online_rate = round((connected / total) * 100, 1) if total > 0 else 0
 
     return render_template_string(
         HTML_TEMPLATE, 
-        endpoints=endpoints, total=total, 
-        connected=connected, disconnected=disconnected, online_rate=online_rate
+        endpoints=endpoints, 
+        connected=connected, disconnected=disconnected
     )
 
 if __name__ == "__main__":
