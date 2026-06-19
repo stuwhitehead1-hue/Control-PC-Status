@@ -20,14 +20,14 @@ HTML_TEMPLATE = """<!DOCTYPE html>
             color: #f1f5f9; 
             background-color: #0f172a; 
             margin: 0; 
-            padding: 4px; 
+            padding: 2px; /* Tightened padding to maximize space */
             display: flex;
             flex-direction: column;
             align-items: center;
         }
         .container {
             width: 100%;
-            max-width: 149px; 
+            max-width: 153px; /* Slightly adjusted to fit a 157px view nicely */
         }
         .endpoint-list {
             background: #1e293b; 
@@ -37,13 +37,13 @@ HTML_TEMPLATE = """<!DOCTYPE html>
             padding: 0;
             margin: 0;
             list-style: none;
-            max-height: 580px; /* Increased to utilize the full 590px height since cards are gone */
+            max-height: 655px; /* Optimized precisely for your 665px display height */
             overflow-y: auto; 
         }
         .endpoint-item {
             display: flex;
             align-items: center;
-            padding: 6px 8px; 
+            padding: 5px 6px; /* Reduced vertical padding to fit more items on screen */
             border-bottom: 1px solid #334155;
         }
         .endpoint-item:last-child {
@@ -54,25 +54,25 @@ HTML_TEMPLATE = """<!DOCTYPE html>
         }
         
         .status-dot {
-            width: 7px;
-            height: 7px;
+            width: 6px; /* Slightly smaller dot */
+            height: 6px;
             border-radius: 50%;
-            margin-right: 8px;
+            margin-right: 6px;
             flex-shrink: 0;
         }
         .dot-connected {
             background-color: #34d399;
-            box-shadow: 0 0 6px #10b981;
+            box-shadow: 0 0 4px #10b981;
         }
         .dot-disconnected {
             background-color: #fb7185;
-            box-shadow: 0 0 6px #f43f5e;
+            box-shadow: 0 0 4px #f43f5e;
         }
 
         .endpoint-name {
             color: #f8fafc;
             font-weight: 600;
-            font-size: 8.5pt;
+            font-size: 8pt; /* Slightly smaller text font to maximize horizontal room */
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
