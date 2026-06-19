@@ -20,24 +20,24 @@ HTML_TEMPLATE = """<!DOCTYPE html>
             color: #f1f5f9; 
             background-color: #0f172a; 
             margin: 0; 
-            padding: 8px; /* Ultra-tight screen padding */
+            padding: 8px; 
             display: flex;
             flex-direction: column;
             align-items: center;
         }
         .container {
             width: 100%;
-            max-width: 260px; /* Highly compressed overall footprint */
+            max-width: 260px; 
         }
         .summary-cards { 
             display: flex; 
-            gap: 6px; /* Micro gaps between summary counters */
+            gap: 6px; 
             margin-bottom: 8px; 
         }
         .card { 
             flex: 1; 
             background: #1e293b; 
-            padding: 8px; /* Compact padding */
+            padding: 8px; 
             border-radius: 6px; 
             border: 1px solid #334155; 
         }
@@ -68,7 +68,6 @@ HTML_TEMPLATE = """<!DOCTYPE html>
         .endpoint-item {
             display: flex;
             align-items: center;
-            justify-content: space-between; /* Pushes name and badge cleanly to outer edges of the 260px container */
             padding: 8px 10px; 
             border-bottom: 1px solid #334155;
         }
@@ -84,8 +83,9 @@ HTML_TEMPLATE = """<!DOCTYPE html>
             font-size: 9pt;
             white-space: nowrap;
             overflow: hidden;
-            text-overflow: ellipsis; /* Safely cuts off overly long hostnames without breaking row heights */
-            margin-right: 8px;
+            text-overflow: ellipsis;
+            flex-grow: 1; /* Allows the name to take up all maximum available row space */
+            margin-right: 6px; /* Reduced gap to prioritize text length */
         }
         .badge { 
             display: inline-block; 
@@ -95,6 +95,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
             border-radius: 10px; 
             text-align: center;
             white-space: nowrap;
+            flex-shrink: 0; /* Prevents the badge itself from squeezing or warping */
         }
         .badge-connected { 
             background-color: #064e3b; 
