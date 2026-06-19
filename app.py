@@ -1,3 +1,6 @@
+Here is the updated app.py script with the entire top heading block removed. The dashboard now dives straight into the summary cards and the endpoint status table for a cleaner, more compact look.
+
+Python
 import os
 import requests
 from flask import Flask, render_template_string
@@ -22,25 +25,10 @@ HTML_TEMPLATE = """<!DOCTYPE html>
             margin: 0; 
             padding: 20px; 
         }
-        .header-container { 
-            background-color: #1e293b; 
-            color: #ffffff; 
-            padding: 20px; 
-            border-bottom: 4px solid #38bdf8; 
-            border-radius: 8px 8px 0 0; 
-        }
-        .header-container h1 {
-            margin: 0;
-            font-size: 20px;
-        }
-        .header-container p {
-            margin: 5px 0 0 0;
-            color: #94a3b8;
-        }
         .summary-cards { 
             display: flex; 
             gap: 15px; 
-            margin: 20px 0; 
+            margin-bottom: 20px; 
         }
         .card { 
             flex: 1; 
@@ -112,10 +100,6 @@ HTML_TEMPLATE = """<!DOCTYPE html>
     </style>
 </head>
 <body>
-    <div class="header-container">
-        <h1>Action1 Endpoint Status Overview</h1>
-        <p>Live Connected Inventory Dashboard</p>
-    </div>
     <div class="summary-cards">
         <div class="card"><div class="card-title">Total Endpoints</div><div class="card-value">{{ total }}</div></div>
         <div class="card connected"><div class="card-title">Connected</div><div class="card-value" style="color:#34d399;">{{ connected }}</div></div>
