@@ -20,64 +20,54 @@ HTML_TEMPLATE = """<!DOCTYPE html>
             color: #f1f5f9; 
             background-color: #0f172a; 
             margin: 0; 
-            padding: 2px; /* Tightened padding to maximize space */
+            padding: 2px; 
             display: flex;
             flex-direction: column;
             align-items: center;
         }
         .container {
             width: 100%;
-            max-width: 153px; /* Slightly adjusted to fit a 157px view nicely */
+            max-width: 161px; /* Scaled perfectly to snug fit a 165px viewport */
         }
         .endpoint-list {
             background: #1e293b; 
             border-radius: 4px; 
             overflow: hidden;
             border: 1px solid #334155; 
-            padding: 0;
+            padding: 2px; 
             margin: 0;
             list-style: none;
-            max-height: 655px; /* Optimized precisely for your 665px display height */
+            max-height: 564px; /* Locked down to prevent breaking the 572px global height limit */
             overflow-y: auto; 
         }
         .endpoint-item {
-            display: flex;
-            align-items: center;
-            padding: 5px 6px; /* Reduced vertical padding to fit more items on screen */
-            border-bottom: 1px solid #334155;
-        }
-        .endpoint-item:last-child {
-            border-bottom: none;
-        }
-        .endpoint-item:nth-child(even) {
-            background-color: #182235;
+            padding: 3px 2px; 
         }
         
-        .status-dot {
-            width: 6px; /* Slightly smaller dot */
-            height: 6px;
-            border-radius: 50%;
-            margin-right: 6px;
-            flex-shrink: 0;
-        }
-        .dot-connected {
-            background-color: #34d399;
-            box-shadow: 0 0 4px #10b981;
-        }
-        .dot-disconnected {
-            background-color: #fb7185;
-            box-shadow: 0 0 4px #f43f5e;
-        }
-
-        .endpoint-name {
-            color: #f8fafc;
-            font-weight: 600;
-            font-size: 8pt; /* Slightly smaller text font to maximize horizontal room */
+        .endpoint-box {
+            display: block;
+            padding: 5px 6px; /* Optimized box padding for readable text flow */
+            border-radius: 4px;
+            font-weight: 700;
+            font-size: 8.5pt;
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
-            flex-grow: 1;
+            text-align: center;
         }
+        
+        .box-connected {
+            background-color: #064e3b; 
+            color: #34d399; 
+            border: 1px solid #059669;
+        }
+        
+        .box-disconnected {
+            background-color: #4c0519; 
+            color: #fb7185; 
+            border: 1px solid #e11d48;
+        }
+        
         .empty-state {
             text-align: center; 
             color: #64748b; 
@@ -91,8 +81,9 @@ HTML_TEMPLATE = """<!DOCTYPE html>
         <ul class="endpoint-list">
             {% for ep in endpoints %}
             <li class="endpoint-item">
-                <span class="status-dot {% if ep.status.lower() == 'connected' %}dot-connected{% else %}dot-disconnected{% endif %}"></span>
-                <span class="endpoint-name" title="{{ ep.name }}">{{ ep.name }}</span>
+                <span class="endpoint-box {% if ep.status.lower() == 'connected' %}box-connected{% else %}box-disconnected{% endif %}" title="{{ ep.name }}">
+                    {{ ep.name }}
+                </span>
             </li>
             {% else %}
             <li class="empty-state">
