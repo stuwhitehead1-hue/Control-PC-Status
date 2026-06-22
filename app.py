@@ -15,19 +15,28 @@ HTML_TEMPLATE = """<!DOCTYPE html>
     <meta charset="UTF-8">
     <title>Action1 Status</title>
     <style>
+        html, body {
+            height: 100%;
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            background-color: #0f172a; 
+            overflow: hidden; /* Total lock on scrolling */
+        }
         body { 
             font-family: -apple-system, sans-serif; 
             color: #f1f5f9; 
-            background-color: #0f172a; 
-            margin: 0; 
-            padding: 2px; 
+            padding: 3px; 
             display: flex;
             flex-direction: column;
             align-items: center;
         }
         .container {
             width: 100%;
-            max-width: 161px; /* Scaled perfectly to snug fit a 165px viewport */
+            max-width: 161px;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
         }
         .endpoint-list {
             background: #1e293b; 
@@ -37,19 +46,32 @@ HTML_TEMPLATE = """<!DOCTYPE html>
             padding: 2px; 
             margin: 0;
             list-style: none;
-            max-height: 564px; /* Locked down to prevent breaking the 572px global height limit */
-            overflow-y: auto; 
+            
+            /* Fill container completely and act as a flex column parent */
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
         }
         .endpoint-item {
-            padding: 3px 2px; 
+            padding: 1px;
+            display: flex;
+            flex-direction: column;
+            
+            /* Forces rows to automatically shrink or grow evenly to fill the 572px frame */
+            flex: 1; 
+            min-height: 0; 
         }
         
         .endpoint-box {
-            display: block;
-            padding: 5px 6px; /* Optimized box padding for readable text flow */
-            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100%; /* Spans the entire dynamically calculated row height */
+            padding: 2px 4px; 
+            border-radius: 3px;
             font-weight: 700;
-            font-size: 8.5pt;
+            font-size: 8pt;
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
