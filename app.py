@@ -79,9 +79,9 @@ HTML_TEMPLATE = """<!DOCTYPE html>
         }
         
         .box-connected {
-            background-color: #064e3b; 
-            color: #34d399; 
-            border: 1px solid #059669;
+            background-color: #22c55e; /* Bright green matching screenshot */
+            color: #ffffff;            /* Solid white text */
+            border: 1px solid #000000; /* Dark separator borders */
         }
         
         .box-disconnected {
