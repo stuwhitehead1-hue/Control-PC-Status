@@ -20,7 +20,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
             margin: 0;
             padding: 0;
             box-sizing: border-box;
-            background-color: #0f172a; 
+            background-color: #000000; /* Changed outside background to pure black */
             overflow: hidden; /* Total lock on scrolling */
         }
         body { 
@@ -39,7 +39,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
             flex-direction: column;
         }
         .endpoint-list {
-            background: #1e293b; 
+            background: #000000; /* Also made the list container background black for consistency */
             border-radius: 4px; 
             overflow: hidden;
             border: 1px solid #334155; 
