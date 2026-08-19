@@ -1,5 +1,6 @@
 import os
 import time
+import json
 import requests
 from flask import Flask, render_template_string
 
@@ -10,8 +11,25 @@ CLIENT_ID = os.environ.get("ACTION1_API_TOKEN") # Your Client ID
 CLIENT_SECRET = os.environ.get("ACTION1_CLIENT_SECRET") # Your Client Secret
 ORG_ID = os.environ.get("ACTION1_ORG_ID")
 
-# In-memory cache to prevent Action1 429 Rate Limit errors
-TOKEN_CACHE = {"token": None, "expires_at": 0}
+CACHE_FILE = "/tmp/action1_token_cache.json"
+
+def read_cache():
+    """Reads cache from disk so all worker processes share state."""
+    if os.path.exists(CACHE_FILE):
+        try:
+            with open(CACHE_FILE, "r") as f:
+                return json.load(f)
+        except Exception:
+            pass
+    return {"token": None, "expires_at": 0, "retry_after": 0}
+
+def write_cache(data):
+    """Writes cache to disk."""
+    try:
+        with open(CACHE_FILE, "w") as f:
+            json.dump(data, f)
+    except Exception as e:
+        print(f"[CACHE ERROR] Could not write cache file: {e}")
 
 HTML_TEMPLATE = """<!DOCTYPE html>
 <html lang="en">
@@ -118,15 +136,23 @@ HTML_TEMPLATE = """<!DOCTYPE html>
 </html>"""
 
 def get_action1_token():
-    """Fetches an Action1 token, reusing the cached token if still valid."""
-    # Reuse valid token if available
-    if TOKEN_CACHE["token"] and time.time() < TOKEN_CACHE["expires_at"]:
-        return TOKEN_CACHE["token"]
+    """Fetches an Action1 token using file-backed caching across worker processes."""
+    now = time.time()
+    cache = read_cache()
+
+    # 1. Reuse valid cached token if available
+    if cache.get("token") and now < cache.get("expires_at", 0):
+        return cache["token"]
+
+    # 2. Block outbound calls across ALL worker processes if in rate-limit cooldown
+    if now < cache.get("retry_after", 0):
+        return None
 
     token_url = "https://app.eu.action1.com/api/3.0/oauth2/token"
     payload = {
         "client_id": CLIENT_ID,
-        "client_secret": CLIENT_SECRET
+        "client_secret": CLIENT_SECRET,
+        "grant_type": "client_credentials"
     }
     headers = {"Content-Type": "application/x-www-form-urlencoded"}
     
@@ -135,14 +161,23 @@ def get_action1_token():
         res.raise_for_status()
         data = res.json()
         
-        # Cache token for its lifespan (default 3600 seconds) minus a 60s buffer
         expires_in = data.get("expires_in", 3600)
-        TOKEN_CACHE["token"] = data.get("access_token")
-        TOKEN_CACHE["expires_at"] = time.time() + expires_in - 60
+        new_cache = {
+            "token": data.get("access_token"),
+            "expires_at": now + expires_in - 60,
+            "retry_after": 0
+        }
+        write_cache(new_cache)
+        return new_cache["token"]
         
-        return TOKEN_CACHE["token"]
     except Exception as e:
         print(f"[AUTH ERROR] Failed to generate OAuth token: {e}")
+        # Lock out ALL workers from requesting tokens for 10 minutes (600s)
+        write_cache({
+            "token": None,
+            "expires_at": 0,
+            "retry_after": now + 600
+        })
         return None
 
 @app.route("/")
@@ -157,10 +192,7 @@ def index():
             response = requests.get(data_url, headers=headers)
             response.raise_for_status()
             endpoints = response.json().get("items", [])
-            
-            # Sort endpoints alphabetically (case-insensitive)
             endpoints.sort(key=lambda x: str(x.get("name", "")).lower())
-            
         except Exception as e:
             print(f"[DATA ERROR] Failed to fetch endpoints from Action1: {e}")
 
