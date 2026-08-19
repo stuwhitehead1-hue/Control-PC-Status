@@ -1,13 +1,17 @@
 import os
+import time
 import requests
 from flask import Flask, render_template_string
 
 app = Flask(__name__)
 
-# Pull variables securely from Render dashboard
+# Pull variables securely from Render environment
 CLIENT_ID = os.environ.get("ACTION1_API_TOKEN") # Your Client ID
 CLIENT_SECRET = os.environ.get("ACTION1_CLIENT_SECRET") # Your Client Secret
 ORG_ID = os.environ.get("ACTION1_ORG_ID")
+
+# In-memory cache to prevent Action1 429 Rate Limit errors
+TOKEN_CACHE = {"token": None, "expires_at": 0}
 
 HTML_TEMPLATE = """<!DOCTYPE html>
 <html lang="en">
@@ -20,8 +24,8 @@ HTML_TEMPLATE = """<!DOCTYPE html>
             margin: 0;
             padding: 0;
             box-sizing: border-box;
-            background-color: #000000; /* Changed outside background to pure black */
-            overflow: hidden; /* Total lock on scrolling */
+            background-color: #000000;
+            overflow: hidden;
         }
         body { 
             font-family: -apple-system, sans-serif; 
@@ -39,15 +43,13 @@ HTML_TEMPLATE = """<!DOCTYPE html>
             flex-direction: column;
         }
         .endpoint-list {
-            background: #000000; /* Also made the list container background black for consistency */
+            background: #000000;
             border-radius: 4px; 
             overflow: hidden;
             border: 1px solid #334155; 
             padding: 2px; 
             margin: 0;
             list-style: none;
-            
-            /* Fill container completely and act as a flex column parent */
             height: 100%;
             display: flex;
             flex-direction: column;
@@ -57,8 +59,6 @@ HTML_TEMPLATE = """<!DOCTYPE html>
             padding: 1px;
             display: flex;
             flex-direction: column;
-            
-            /* Forces rows to automatically shrink or grow evenly to fill the 572px frame */
             flex: 1; 
             min-height: 0; 
         }
@@ -67,7 +67,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
             display: flex;
             align-items: center;
             justify-content: center;
-            height: 100%; /* Spans the entire dynamically calculated row height */
+            height: 100%;
             padding: 2px 4px; 
             border-radius: 3px;
             font-weight: 700;
@@ -79,9 +79,9 @@ HTML_TEMPLATE = """<!DOCTYPE html>
         }
         
         .box-connected {
-            background-color: #22c55e; /* Bright green matching screenshot */
-            color: #ffffff;            /* Solid white text */
-            border: 1px solid #000000; /* Dark separator borders */
+            background-color: #22c55e;
+            color: #ffffff; 
+            border: 1px solid #000000;
         }
         
         .box-disconnected {
@@ -118,7 +118,11 @@ HTML_TEMPLATE = """<!DOCTYPE html>
 </html>"""
 
 def get_action1_token():
-    """Exchanges Client ID and Secret for an active Session Token on the EU cluster"""
+    """Fetches an Action1 token, reusing the cached token if still valid."""
+    # Reuse valid token if available
+    if TOKEN_CACHE["token"] and time.time() < TOKEN_CACHE["expires_at"]:
+        return TOKEN_CACHE["token"]
+
     token_url = "https://app.eu.action1.com/api/3.0/oauth2/token"
     payload = {
         "client_id": CLIENT_ID,
@@ -129,7 +133,14 @@ def get_action1_token():
     try:
         res = requests.post(token_url, data=payload, headers=headers)
         res.raise_for_status()
-        return res.json().get("access_token")
+        data = res.json()
+        
+        # Cache token for its lifespan (default 3600 seconds) minus a 60s buffer
+        expires_in = data.get("expires_in", 3600)
+        TOKEN_CACHE["token"] = data.get("access_token")
+        TOKEN_CACHE["expires_at"] = time.time() + expires_in - 60
+        
+        return TOKEN_CACHE["token"]
     except Exception as e:
         print(f"[AUTH ERROR] Failed to generate OAuth token: {e}")
         return None
@@ -147,7 +158,7 @@ def index():
             response.raise_for_status()
             endpoints = response.json().get("items", [])
             
-            # Sort endpoints alphabetically (case-insensitive) by the "name" key
+            # Sort endpoints alphabetically (case-insensitive)
             endpoints.sort(key=lambda x: str(x.get("name", "")).lower())
             
         except Exception as e:
