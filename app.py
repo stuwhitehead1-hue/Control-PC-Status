@@ -1,13 +1,62 @@
 import os
+import time
+import json
 import requests
 from flask import Flask, render_template_string
 
 app = Flask(__name__)
 
-# Pull variables securely from Render environment
-# ACTION1_API_TOKEN should be the API Key generated directly from the Action1 console
-API_TOKEN = os.environ.get("ACTION1_API_TOKEN") 
+# Credentials from Render environment variables
+CLIENT_ID = os.environ.get("ACTION1_API_TOKEN") # api-key-...@action1.com
+CLIENT_SECRET = os.environ.get("ACTION1_CLIENT_SECRET")
 ORG_ID = os.environ.get("ACTION1_ORG_ID")
+
+CACHE_FILE = "/tmp/action1_token_cache.json"
+
+def get_action1_token():
+    """Exchanges Client ID and Secret for an Access Token with file caching."""
+    now = time.time()
+    
+    # 1. Check for valid cached token
+    if os.path.exists(CACHE_FILE):
+        try:
+            with open(CACHE_FILE, "r") as f:
+                cache = json.load(f)
+                if cache.get("token") and now < cache.get("expires_at", 0):
+                    return cache["token"]
+        except Exception:
+            pass
+
+    # 2. Request a new access token from Action1
+    token_url = "https://app.eu.action1.com/api/3.0/oauth2/token"
+    payload = {
+        "grant_type": "client_credentials",
+        "client_id": CLIENT_ID,
+        "client_secret": CLIENT_SECRET
+    }
+    headers = {"Content-Type": "application/x-www-form-urlencoded"}
+
+    try:
+        res = requests.post(token_url, data=payload, headers=headers)
+        res.raise_for_status()
+        data = res.json()
+        
+        access_token = data.get("access_token")
+        expires_in = data.get("expires_in", 3600)
+        
+        # Save token to disk (with 60-second safety buffer)
+        with open(CACHE_FILE, "w") as f:
+            json.dump({
+                "token": access_token,
+                "expires_at": now + expires_in - 60
+            }, f)
+            
+        return access_token
+    except Exception as e:
+        print(f"[AUTH ERROR] Failed to fetch token: {e}")
+        if hasattr(e, 'response') and e.response is not None:
+            print(f"[AUTH DETAILS] {e.response.text}")
+        return None
 
 HTML_TEMPLATE = """<!DOCTYPE html>
 <html lang="en">
@@ -58,7 +107,6 @@ HTML_TEMPLATE = """<!DOCTYPE html>
             flex: 1; 
             min-height: 0; 
         }
-        
         .endpoint-box {
             display: flex;
             align-items: center;
@@ -73,19 +121,16 @@ HTML_TEMPLATE = """<!DOCTYPE html>
             text-overflow: ellipsis;
             text-align: center;
         }
-        
         .box-connected {
             background-color: #22c55e;
             color: #ffffff; 
             border: 1px solid #000000;
         }
-        
         .box-disconnected {
             background-color: #4c0519; 
             color: #fb7185; 
             border: 1px solid #e11d48;
         }
-        
         .empty-state {
             text-align: center; 
             color: #64748b; 
@@ -116,23 +161,21 @@ HTML_TEMPLATE = """<!DOCTYPE html>
 @app.route("/")
 def index():
     endpoints = []
+    token = get_action1_token()
     
-    if API_TOKEN and ORG_ID:
+    if token:
         data_url = f"https://app.eu.action1.com/api/3.0/endpoints/managed/{ORG_ID}"
         headers = {
-            "Authorization": f"Bearer {API_TOKEN}",
+            "Authorization": f"Bearer {token}",
             "Accept": "application/json"
         }
         try:
             response = requests.get(data_url, headers=headers)
             response.raise_for_status()
-            
-            # Action1 endpoint lists are typically nested inside 'items'
             endpoints = response.json().get("items", [])
             endpoints.sort(key=lambda x: str(x.get("name", "")).lower())
-            
         except Exception as e:
-            print(f"[DATA ERROR] Failed to fetch endpoints from Action1: {e}")
+            print(f"[DATA ERROR] Failed to fetch endpoints: {e}")
 
     return render_template_string(HTML_TEMPLATE, endpoints=endpoints)
 
